@@ -1,5 +1,7 @@
-heroku-buildpack-imagemagick-heif
+heroku-buildpack-imagemagick-webp-heif
 =================================
+
+Use [ImageMagick](www.imagemagick.org) built with [libwebp](https://code.google.com/p/webp/) inside a Heroku `heroku-16` environment. This buildpack will download both libraries, build them from source and install them along side your app.
 
 The rise in popularity and use of HEIF/HEIC(High Efficency Image Format) means your project's image processing also needs to be able to handle this format. The current default version of imagemagick installed on heroku:16 dynos is 6.8.9.9 and does not support processing heic image files. This [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) vendors a version of ImageMagick with HEIF support binaries into your project. It is based on several resources including https://github.com/retailzipline/heroku-buildpack-imagemagick-heif.
 
@@ -7,7 +9,7 @@ The orginal buildpack was created for `heroku-18` stacks but this one was modifi
 
 The tar file in the [/build folder](./build) currently contains: 
 
-Version: ImageMagick 7.0.9-22 Q16 x86_64 2020-02-10 https://imagemagick.org
+Version: ImageMagick 7.0.10-19 https://imagemagick.org
 
 You will need to build a new binary if you want to use a newer or different version. To build a new binary see [How to Build a New Binary](#how-to-build-a-new-binary)
 
@@ -57,11 +59,12 @@ _This will take you to an interactive bash shell as a root user inside the conta
      ```
 
 
-3. Clone the libde265 and libheif libraries:
+3. Download the libwebp, libde265 and libheif libraries:
 
      ```bash
      $ git clone https://github.com/strukturag/libde265.git
      $ git clone https://github.com/strukturag/libheif.git
+     $ curl -L --silent "http://downloads.webmproject.org/releases/webp/libwebp-1.1.0.tar.gz" | tar xz
      ```
 
 
@@ -79,23 +82,30 @@ _This will take you to an interactive bash shell as a root user inside the conta
     $ cd ../libheif/
     $ ./autogen.sh && ./configure && make && make install
     ```
+    
+6. Install the libwebp library:
+
+    ```bash
+    $ cd ../libwebp-1.1.0/
+    $ ./configure && make && make install
+    ```
 
 
-6. Get, Configure and Install Newest Imagemagick:
+7. Get, Configure and Install Newest Imagemagick:
 
     ```bash
     $ cd /usr/src/
     $ wget https://www.imagemagick.org/download/ImageMagick.tar.gz
     $ tar xf ImageMagick.tar.gz
     $ cd ImageMagick-7* #(This might be 8 at some point?)
-    $ ./configure --with-heic=yes --prefix=/usr/src/imagemagick --without-gvc
+    $ ./configure --with-heic=yes --with-webp --prefix=/usr/src/imagemagick --without-gvc
     $ make && make install
     ```
 
 _Take a break this will take a few min to install._
 
 
-7. Copy the dependencies into imagemagick lib directory:
+8. Copy the dependencies into imagemagick lib directory:
 
     ```bash
     $ cp /usr/local/lib/libde265.so.0 /usr/src/imagemagick/lib
@@ -107,7 +117,7 @@ _Take a break this will take a few min to install._
 _The last 2 libraries are not available at run time on heroku only build time see [Ubuntu Packages on Heroku Stacks](https://devcenter.heroku.com/articles/stack-packages) for more info_
 
 
-8. Clean up the build and get ready for packaging:
+9. Clean up the build and get ready for packaging:
 
     ```bash
     $ cd /usr/src/imagemagick
@@ -117,7 +127,7 @@ _The last 2 libraries are not available at run time on heroku only build time se
 [What does `strip` do?](https://en.wikipedia.org/wiki/Strip_(Unix))
 
 
-9. Wrap it up with a bow(compress the binary):
+10. Wrap it up with a bow(compress the binary):
 
     ```bash
     $ cd /usr/src/imagemagick
@@ -127,13 +137,13 @@ _The last 2 libraries are not available at run time on heroku only build time se
     ```
 
 
-10. Copy the compressed file/tarball from the docker container into the repo(_you need to have cloned this repo locally_):
+11. Copy the compressed file/tarball from the docker container into the repo(_you need to have cloned this repo locally_):
  
     ```bash
     # List current running docker processes to find out the NAME of your container
     $ docker ps
     # copy the binary from the container to the build directory in the repo on your local machine
-    $ cp <NAME_of_docker_container>:/usr/src/imagemagick.tar.gz <path_to_build_folder_in_git_repo>
+    $ docker cp <NAME_of_docker_container>:/usr/src/imagemagick.tar.gz <path_to_build_folder_in_git_repo>
     ```
      
 
@@ -142,7 +152,7 @@ _The last 2 libraries are not available at run time on heroku only build time se
 _You may need to delete the old tarball from the bin folder first or to be safe copy the file from the container to your local machine before adding to the repo so you have a copy of the old binary tarball._
 
 
-11. Commit and Push to repo
+12. Commit and Push to repo
 
 
 ### Clear cache(_Not Sure if this is necessary)
