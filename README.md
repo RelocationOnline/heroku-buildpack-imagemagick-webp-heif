@@ -143,7 +143,7 @@ _The last 2 libraries are not available at run time on heroku only build time se
     # List current running docker processes to find out the NAME of your container
     $ docker ps
     # copy the binary from the container to the build directory in the repo on your local machine
-    $ docker cp <NAME_of_docker_container>:/usr/src/imagemagick.tar.gz <path_to_build_folder_in_git_repo>
+    $ docker cp <NAME_of_docker_container>:/usr/src/imagemagick/build/imagemagick.tar.gz <path_to_build_folder_in_git_repo>
     ```
      
 
