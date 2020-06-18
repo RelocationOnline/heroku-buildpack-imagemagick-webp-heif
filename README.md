@@ -98,7 +98,7 @@ _This will take you to an interactive bash shell as a root user inside the conta
     $ wget https://www.imagemagick.org/download/ImageMagick.tar.gz
     $ tar xf ImageMagick.tar.gz
     $ cd ImageMagick-7* #(This might be 8 at some point?)
-    $ ./configure --with-heic=yes --with-webp --prefix=/usr/src/imagemagick --without-gvc
+    $ ./configure --prefix=/usr/src/imagemagick --with-heic=yes --with-webp --with-gvc=no --with-quantum-depth=8 --disable-static
     $ make && make install
     ```
 
